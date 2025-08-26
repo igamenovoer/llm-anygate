@@ -7,7 +7,7 @@ authors = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.24.0",
     "pydantic>=2.0.0",
@@ -20,10 +20,9 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
@@ -33,21 +32,6 @@ Homepage = "https://github.com/igamenovoer/llm-anygate"
 Repository = "https://github.com/igamenovoer/llm-anygate"
 Issues = "https://github.com/igamenovoer/llm-anygate/issues"
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "pytest-asyncio>=0.21",
-    "black>=23.0",
-    "ruff>=0.1",
-    "mypy>=1.0",
-    "pre-commit>=3.0",
-]
-docs = [
-    "mkdocs>=1.5",
-    "mkdocs-material>=9.0",
-    "mkdocstrings[python]>=0.24",
-]
 
 [project.scripts]
 llm-anygate = "llm_anygate.cli:main"
@@ -65,7 +49,10 @@ platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
 
 [tool.pixi.dependencies]
-python = ">=3.9"
+python = ">=3.11,<4"
+pip = "*"
+setuptools = "*"
+wheel = "*"
 
 [tool.pixi.pypi-dependencies]
 # Install the package in editable mode
@@ -80,8 +67,7 @@ lint = "ruff check src/ tests/"
 format = "ruff format src/ tests/"
 typecheck = "mypy src/"
 build = "python -m build"
-clean = { cmd = "rm -rf dist/ build/ *.egg-info/", platforms = ["linux-64", "osx-64", "osx-arm64"] }
-clean-win = { cmd = "cmd /c \"rmdir /s /q dist build & del /q *.egg-info\"", platforms = ["win-64"] }
+clean = "rm -rf dist/ build/ *.egg-info/ || cmd /c \"rmdir /s /q dist build 2>nul & del /q *.egg-info 2>nul & exit /b 0\""
 
 # Documentation tasks
 docs-serve = "mkdocs serve"
@@ -92,6 +78,21 @@ docs-deploy = "mkdocs gh-deploy"
 quality = { depends-on = ["lint", "typecheck", "test"] }
 dev-setup = "pixi run install"
 
+[tool.pixi.feature.dev.pypi-dependencies]
+pytest = ">=7.0"
+pytest-cov = ">=4.0"
+pytest-asyncio = ">=0.21"
+black = ">=23.0"
+ruff = ">=0.1"
+mypy = ">=1.0"
+pre-commit = ">=3.0"
+build = ">=1.0"
+
+[tool.pixi.feature.docs.pypi-dependencies]
+mkdocs = ">=1.5"
+mkdocs-material = ">=9.0"
+mkdocstrings = {extras = ["python"], version = ">=0.24"}
+
 [tool.pixi.environments]
 default = {features = [], solve-group = "default"}
 dev = {features = ["dev"], solve-group = "default"}
@@ -100,14 +101,14 @@ docs = {features = ["docs"], solve-group = "default"}
 # Tool configurations
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
