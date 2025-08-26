@@ -3,14 +3,11 @@
 __version__ = "0.1.0"
 __author__ = "igamenovoer"
 
-from .core import Gateway
-from .providers import Provider, OpenAIProvider, AnthropicProvider
-from .config import Config
+# Always available
+from llm_anygate.cli_tool import main as cli_main
 
 __all__ = [
-    "Gateway",
-    "Provider",
-    "OpenAIProvider", 
-    "AnthropicProvider",
-    "Config",
+    "cli_main",
+    "__version__",
+    "__author__",
 ]

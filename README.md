@@ -1,49 +1,22 @@
 # LLM AnyGate
 
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue)](https://igamenovoer.github.io/llm-anygate/)
 
-A powerful tool that generates LiteLLM proxy configurations, management scripts, and testing utilities from high-level YAML configurations. Designed to free users from understanding the complexities of the LiteLLM library and quickly create local LLM proxies for use with various AI coding tools.
+A powerful CLI tool that generates LiteLLM proxy projects from simple YAML configurations. Designed to free users from understanding the complexities of the LiteLLM library and quickly create local LLM proxies for use with various AI coding tools.
 
 ## Overview
 
-LLM AnyGate simplifies the process of setting up and managing LiteLLM proxies by providing:
-
-- **High-level YAML configuration** - Define your LLM providers and settings in simple YAML
-- **Automatic proxy generation** - Generate complete LiteLLM proxy configurations  
-- **Management scripts** - Start, stop, and manage your proxy instances
-- **Testing utilities** - Validate your configurations and test connectivity
-- **Multi-provider support** - Work with various LLM providers seamlessly
+LLM AnyGate simplifies the process of setting up LiteLLM proxy servers by providing a simple command-line interface to generate complete, ready-to-run proxy projects with minimal configuration.
 
 ## Key Features
 
-### 🎯 **Simplified Configuration**
-Configure your LLM providers using intuitive YAML files instead of complex LiteLLM configurations:
-- Provider URLs and endpoints
-- Supported endpoint formats
-- Context limits and model specifications
-- Authentication and rate limiting
-
-### 🚀 **Compatible with Popular AI Tools**
-Works seamlessly with:
-- Claude Code (Anthropic)
-- Gemini CLI
-- Cline
-- Roo Code
-- Any tool that supports OpenAI-compatible APIs
-
-### 🔧 **Automated Setup**
-- Generate complete LiteLLM proxy configurations
-- Create Docker compositions for containerized deployment
-- Generate management scripts (start/stop/restart)
-- Automatic health checks and monitoring
-
-### 🧪 **Built-in Testing**
-- Configuration validation
-- Provider connectivity testing
-- Load testing utilities
-- Performance benchmarking
+🚀 **Quick Setup** - Create a fully configured LiteLLM proxy project with one command  
+📝 **Simple Configuration** - Use minimal YAML config instead of complex LiteLLM settings  
+🔧 **Zero Database** - Generated proxies run statelessly without database requirements  
+🖥️ **Cross-Platform** - Includes both shell scripts (Unix/macOS) and PowerShell (Windows)  
+🎯 **Production Ready** - Generates complete project with scripts, config, and documentation
 
 ## Installation
 
@@ -63,84 +36,169 @@ cd llm-anygate
 # Initialize submodules
 git submodule update --init --recursive
 
-# Install pixi (if not already installed)
-# See https://pixi.sh/latest/ for installation instructions
-
-# Setup development environment
+# Setup development environment with Pixi
 pixi install
 pixi shell
 ```
 
 ## Quick Start
 
-```python
-from llm_anygate import Gateway, OpenAIProvider, AnthropicProvider
+### Step 1: Create a Model Configuration
 
-# Create gateway
-gateway = Gateway()
-
-# Register providers
-gateway.register_provider("openai", OpenAIProvider(api_key="your-key"))
-gateway.register_provider("anthropic", AnthropicProvider(api_key="your-key"))
-
-# List available providers
-print(gateway.list_providers())  # ['openai', 'anthropic']
-
-# Use a provider
-provider = gateway.get_provider("openai")
-response = await provider.complete("Hello, world!")
-print(response)
-```
-
-## Configuration Example
+Create a simple YAML file with your model configurations (`model-config.yaml`):
 
 ```yaml
-# config.yaml
-providers:
-  - name: "anthropic"
-    type: "claude"
-    base_url: "https://api.anthropic.com"
-    endpoint_format: "anthropic"
-    context_limit: 200000
-    models:
-      - "claude-3-5-sonnet-20241022"
-      - "claude-3-5-haiku-20241022"
-    
-  - name: "openai"
-    type: "openai"
-    base_url: "https://api.openai.com/v1"
-    endpoint_format: "openai"
-    context_limit: 128000
-    models:
-      - "gpt-4o"
-      - "gpt-4o-mini"
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_base: https://api.openai.com/v1
+      api_key: os.environ/OPENAI_API_KEY
 
-proxy:
-  port: 8000
-  host: "0.0.0.0"
-  cors_enabled: true
-  rate_limit: 100
+  - model_name: claude-3-5-sonnet
+    litellm_params:
+      model: anthropic/claude-3-5-sonnet-20241022
+      api_key: os.environ/ANTHROPIC_API_KEY
+      
+  - model_name: gemini-pro
+    litellm_params:
+      model: gemini/gemini-pro
+      api_key: os.environ/GEMINI_API_KEY
 ```
 
-## Project Structure
+### Step 2: Generate Proxy Project
+
+Use the CLI to generate a complete LiteLLM proxy project:
+
+```bash
+llm-anygate-cli create \
+  --project my-proxy \
+  --model-config model-config.yaml \
+  --port 4567 \
+  --master-key "sk-my-secure-key"
+```
+
+### Step 3: Start the Proxy Server
+
+```bash
+cd my-proxy
+
+# Copy and configure environment variables
+cp .env.template .env
+# Edit .env and add your API keys
+
+# Start the proxy
+./start-proxy.sh    # On Unix/macOS
+.\start-proxy.ps1   # On Windows
+```
+
+### Step 4: Use the Proxy
+
+Your proxy is now running at `http://localhost:4567` with an OpenAI-compatible API:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:4567/v1",
+    api_key="sk-my-secure-key"
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o",  # or any model from your config
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+## Generated Project Structure
+
+The CLI generates a complete project with:
+
+```
+my-proxy/
+├── config.yaml         # Full LiteLLM configuration
+├── .env.template       # Template for API keys
+├── README.md          # Project documentation
+├── start-proxy.sh     # Unix/macOS start script
+├── start-proxy.ps1    # Windows start script
+└── .gitignore         # Git ignore rules
+```
+
+## CLI Usage
+
+### Create Command
+
+```bash
+llm-anygate-cli create [options]
+```
+
+**Options:**
+- `--project <dir>` (required) - Directory to create the project in
+- `--model-config <file>` (required) - Path to your model configuration YAML
+- `--port <number>` - Port for the proxy server (default: 4567)
+- `--master-key <key>` - Master key for API authentication (default: sk-dummy)
+
+### Example with Custom Settings
+
+```bash
+llm-anygate-cli create \
+  --project /path/to/my-llm-proxy \
+  --model-config configs/models.yaml \
+  --port 8080 \
+  --master-key "sk-production-key-here"
+```
+
+## Model Configuration Format
+
+The model configuration is a simple YAML file with a `model_list` array:
+
+```yaml
+model_list:
+  - model_name: <name-for-your-app>
+    litellm_params:
+      model: <provider>/<model-id>
+      api_base: <api-endpoint>  # Optional
+      api_key: os.environ/<ENV_VAR_NAME>
+      # Additional parameters as needed
+```
+
+### Supported Providers
+
+- OpenAI and OpenAI-compatible endpoints
+- Anthropic (Claude)
+- Google (Gemini/Vertex)
+- Azure OpenAI
+- Local models (Ollama, etc.)
+- Any provider supported by LiteLLM
+
+## Why LLM AnyGate?
+
+### The Problem
+Setting up LiteLLM proxy servers requires understanding complex configurations, database setups, and various deployment options. This complexity is a barrier for developers who just want a simple proxy for their AI tools.
+
+### The Solution
+LLM AnyGate provides a simple CLI that generates everything you need:
+- ✅ No database required (stateless operation)
+- ✅ Minimal configuration needed
+- ✅ Cross-platform start scripts
+- ✅ Environment variable management
+- ✅ Production-ready settings
+
+## Development
+
+### Project Structure
 
 ```
 llm-anygate/
-├── src/llm_anygate/      # Main package source code
-├── scripts/               # CLI and utility scripts  
-├── tests/                 # Test suite
-├── docs/                  # Documentation source
-├── context/               # AI collaboration workspace
-│   ├── design/           # Technical specifications
-│   ├── hints/            # How-to guides
-│   ├── logs/             # Development logs
-│   ├── plans/            # Implementation plans
-│   └── tasks/            # Current work items
-├── .magic-context/        # Reusable project templates
-└── .github/workflows/     # CI/CD automation
+├── src/llm_anygate/       # Main package source code
+│   ├── cli_tool.py        # CLI interface
+│   ├── config_converter.py # Config conversion logic
+│   ├── proxy_generator.py  # Project generation
+│   └── templates.py        # File templates
+├── tests/                  # Test suite
+├── docs/                   # Documentation
+└── context/                # AI collaboration workspace
 ```
-
-## Development
 
 ### Running Tests
 
@@ -158,72 +216,37 @@ pixi run typecheck      # Type checking
 pixi run quality        # Run all checks
 ```
 
-### Documentation
-
-```bash
-pixi run docs-serve     # Serve docs locally
-pixi run docs-build     # Build documentation
-pixi run docs-deploy    # Deploy to GitHub Pages
-```
-
-## Security
-
-This project uses the following files to store sensitive credential information:
-- `.secrets.json` - API keys and tokens
-- `.hidden-env.env` - Environment variables with sensitive data
-
-**Important**: These files are automatically excluded from git tracking via `.gitignore`. Never commit sensitive credentials to version control.
-
-## Architecture
-
-- **Config Parser**: Validates and processes YAML configurations
-- **Proxy Generator**: Creates LiteLLM-compatible configurations
-- **Script Generator**: Produces management and deployment scripts
-- **Testing Suite**: Provides validation and testing utilities
-- **Documentation Generator**: Creates setup guides and API documentation
-
-## Use Cases
-
-- **AI Development**: Quickly set up local proxies for development with AI coding assistants
-- **Multi-provider Setup**: Aggregate multiple LLM providers behind a single endpoint
-- **Testing & Development**: Create isolated environments for testing different LLM configurations
-- **Cost Management**: Implement rate limiting and usage tracking across providers
-- **Fallback Systems**: Configure automatic failover between providers
-
 ## Roadmap
 
-- [ ] Core YAML configuration parser
-- [ ] LiteLLM proxy configuration generator
+- [x] Core CLI tool implementation
+- [x] LiteLLM configuration generation
+- [x] Cross-platform start scripts
+- [x] Environment variable management
 - [ ] Docker composition generator
-- [ ] Management script templates
 - [ ] Provider connectivity testing
 - [ ] Configuration validation
-- [ ] Web UI for configuration management
+- [ ] Web UI for configuration
 - [ ] Metrics and monitoring integration
 - [ ] Advanced routing and load balancing
+
+## Requirements
+
+- Python 3.11 or higher
+- LiteLLM (for running generated proxies)
+  ```bash
+  pip install 'litellm[proxy]'
+  ```
+
+## Security Notes
+
+- Generated projects include `.env.template` for API keys
+- Never commit `.env` files with actual API keys
+- Always use secure master keys in production
+- Generated `.gitignore` excludes sensitive files
 
 ## Contributing
 
 Contributions are welcome! Please see our [Contributing Guide](docs/development/contributing.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run quality checks (`pixi run quality`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-## Documentation
-
-Full documentation is available at [https://igamenovoer.github.io/llm-anygate/](https://igamenovoer.github.io/llm-anygate/)
-
-- [Getting Started Guide](docs/getting-started/installation.md)
-- [API Reference](docs/api/gateway.md)
-- [Provider Documentation](docs/guide/providers.md)
-- [Development Guide](docs/development/contributing.md)
 
 ## License
 
@@ -231,9 +254,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- Built with modern Python packaging standards
+- Built with [OmegaConf](https://github.com/omry/omegaconf) for robust configuration handling
 - Uses [Pixi](https://pixi.sh/) for environment management
-- Documentation powered by [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
+- Generates configurations for [LiteLLM](https://github.com/BerriAI/litellm)
 - Project structure based on [magic-context](https://github.com/igamenovoer/magic-context) templates
 
 ## Contact
