@@ -1,6 +1,6 @@
 [project]
 name = "llm-anygate"
-version = "1.0.0"
+version = "1.0.1"
 description = "A flexible gateway for connecting and managing multiple LLM providers"
 authors = [
     {name = "igamenovoer", email = "igamenovoer@github.com"}
@@ -48,7 +48,7 @@ name = "llm-anygate"
 authors = ["igamenovoer <igamenovoer@github.com>"]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "1.0.0"
+version = "1.0.1"
 
 [tool.pixi.dependencies]
 python = ">=3.11,<4"
