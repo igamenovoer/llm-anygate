@@ -13,10 +13,11 @@ LLM AnyGate simplifies the process of setting up LiteLLM proxy servers by provid
 ## Key Features
 
 🚀 **Quick Setup** - Create a fully configured LiteLLM proxy project with one command  
-📝 **Simple Configuration** - Use minimal YAML config instead of complex LiteLLM settings  
+📝 **Simple Configuration** - Use minimal YAML config instead of complex LiteLLM settings (or use defaults)  
 🔧 **Zero Database** - Generated proxies run statelessly without database requirements  
-🖥️ **Cross-Platform** - Includes both shell scripts (Unix/macOS) and PowerShell (Windows)  
-🎯 **Production Ready** - Generates complete project with scripts, config, and documentation
+🖥️ **Cross-Platform** - Works on Windows, macOS, and Linux with unified CLI commands  
+🎯 **Production Ready** - Generates complete project with config, environment templates, and documentation  
+📦 **PyPI Package** - Easy installation via pip from official PyPI repository
 
 ## Installation
 
@@ -43,9 +44,23 @@ pixi shell
 
 ## Quick Start
 
-### Step 1: Create a Model Configuration
+### Step 1: Generate Proxy Project (Optional Configuration)
 
-Create a simple YAML file with your model configurations (`model-config.yaml`):
+Use the CLI to generate a complete LiteLLM proxy project. The model configuration is optional:
+
+```bash
+# With default configuration (uses gpt-4o with OPENAI_API_KEY)
+llm-anygate-cli create --project my-proxy
+
+# With custom configuration file
+llm-anygate-cli create \
+  --project my-proxy \
+  --model-config model-config.yaml \
+  --port 4567 \
+  --master-key "sk-my-secure-key"
+```
+
+If you want to use a custom model configuration, create a YAML file (`model-config.yaml`):
 
 ```yaml
 model_list:
@@ -66,30 +81,25 @@ model_list:
       api_key: os.environ/GEMINI_API_KEY
 ```
 
-### Step 2: Generate Proxy Project
-
-Use the CLI to generate a complete LiteLLM proxy project:
-
-```bash
-llm-anygate-cli create \
-  --project my-proxy \
-  --model-config model-config.yaml \
-  --port 4567 \
-  --master-key "sk-my-secure-key"
-```
-
-### Step 3: Start the Proxy Server
+### Step 2: Configure Environment
 
 ```bash
 cd my-proxy
 
 # Copy and configure environment variables
-cp .env.template .env
+cp env.example .env
 # Edit .env and add your API keys
+```
 
-# Start the proxy
-./start-proxy.sh    # On Unix/macOS
-.\start-proxy.ps1   # On Windows
+### Step 3: Start the Proxy Server
+
+```bash
+# Start using the CLI tool
+llm-anygate-cli start
+
+# Or start from within the project directory
+cd my-proxy
+llm-anygate-cli start
 ```
 
 ### Step 4: Use the Proxy
@@ -117,10 +127,9 @@ The CLI generates a complete project with:
 ```
 my-proxy/
 ├── config.yaml         # Full LiteLLM configuration
-├── .env.template       # Template for API keys
+├── env.example         # Template for API keys
+├── anygate.yaml       # Project configuration for llm-anygate-cli
 ├── README.md          # Project documentation
-├── start-proxy.sh     # Unix/macOS start script
-├── start-proxy.ps1    # Windows start script
 └── .gitignore         # Git ignore rules
 ```
 
@@ -134,18 +143,42 @@ llm-anygate-cli create [options]
 
 **Options:**
 - `--project <dir>` (required) - Directory to create the project in
-- `--model-config <file>` (required) - Path to your model configuration YAML
+- `--model-config <file>` (optional) - Path to your model configuration YAML (generates default gpt-4o config if not provided)
 - `--port <number>` - Port for the proxy server (default: 4567)
 - `--master-key <key>` - Master key for API authentication (default: sk-dummy)
 
-### Example with Custom Settings
+### Start Command
 
 ```bash
+llm-anygate-cli start [options]
+```
+
+**Options:**
+- `--project <dir>` (optional) - Project directory (default: current directory)
+- `--port <number>` (optional) - Override port from project configuration
+- `--master-key <key>` (optional) - Override master key from project configuration
+
+The start command reads configuration from `anygate.yaml` in the project directory.
+
+### Examples
+
+```bash
+# Create with default configuration
+llm-anygate-cli create --project my-proxy
+
+# Create with custom configuration
 llm-anygate-cli create \
   --project /path/to/my-llm-proxy \
   --model-config configs/models.yaml \
   --port 8080 \
   --master-key "sk-production-key-here"
+
+# Start proxy from project directory
+cd my-proxy
+llm-anygate-cli start
+
+# Start proxy with overrides
+llm-anygate-cli start --port 3000 --master-key "sk-new-key"
 ```
 
 ## Model Configuration Format
@@ -220,8 +253,10 @@ pixi run quality        # Run all checks
 
 - [x] Core CLI tool implementation
 - [x] LiteLLM configuration generation
-- [x] Cross-platform start scripts
+- [x] Cross-platform CLI commands (create & start)
 - [x] Environment variable management
+- [x] PyPI package publishing
+- [x] Default configuration support
 - [ ] Docker composition generator
 - [ ] Provider connectivity testing
 - [ ] Configuration validation
@@ -232,14 +267,18 @@ pixi run quality        # Run all checks
 ## Requirements
 
 - Python 3.11 or higher
-- LiteLLM (for running generated proxies)
+- LiteLLM CLI tool (for running generated proxies)
   ```bash
+  # Recommended: Install using uv
+  uv tool install 'litellm[proxy]'
+  
+  # Alternative: Install with pip
   pip install 'litellm[proxy]'
   ```
 
 ## Security Notes
 
-- Generated projects include `.env.template` for API keys
+- Generated projects include `env.example` as a template for API keys
 - Never commit `.env` files with actual API keys
 - Always use secure master keys in production
 - Generated `.gitignore` excludes sensitive files
