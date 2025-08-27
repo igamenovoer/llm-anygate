@@ -7,9 +7,7 @@ from pathlib import Path
 from llm_anygate.config_converter import create_full_config
 from llm_anygate.templates import (
     get_env_template,
-    get_powershell_script_template,
     get_readme_template,
-    get_shell_script_template,
 )
 
 
@@ -73,18 +71,15 @@ class ProxyGenerator:
             print("Creating README...")
             self._create_file(readme_path, get_readme_template(port, master_key))
 
-            # Create start scripts
-            print("Creating start scripts...")
-
-            # Shell script for Unix/macOS
-            shell_script_path = project_dir / "start-proxy.sh"
-            self._create_file(shell_script_path, get_shell_script_template(port))
-            # Make shell script executable
-            self._make_executable(shell_script_path)
-
-            # PowerShell script for Windows
-            ps_script_path = project_dir / "start-proxy.ps1"
-            self._create_file(ps_script_path, get_powershell_script_template(port))
+            # Create anygate configuration
+            print("Creating anygate configuration...")
+            anygate_config_path = project_dir / "anygate.yaml"
+            self._create_anygate_config(
+                anygate_config_path, 
+                str(model_config_path.resolve()),
+                port, 
+                master_key
+            )
 
             # Create .gitignore
             gitignore_path = project_dir / ".gitignore"
@@ -106,6 +101,32 @@ class ProxyGenerator:
         """
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
+    
+    def _create_anygate_config(
+        self, 
+        config_path: Path, 
+        model_config_path: str, 
+        port: int, 
+        master_key: str
+    ) -> None:
+        """Create anygate.yaml configuration file.
+
+        Args:
+            config_path: Path to the anygate.yaml file
+            model_config_path: Path to the original model config file  
+            port: Port number for the proxy server
+            master_key: Master key for authentication
+        """
+        config_content = f"""# AnyGate Configuration
+# This file stores the configuration used when creating this proxy project
+# It will be used by 'llm-anygate-cli start' for default values
+
+project:
+  model_config: "{model_config_path}"
+  port: {port}
+  master_key: "{master_key}"
+"""
+        self._create_file(config_path, config_content)
 
     def _make_executable(self, path: Path) -> None:
         """Make a file executable (Unix/macOS only).
