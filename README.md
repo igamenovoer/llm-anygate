@@ -19,6 +19,18 @@ LLM AnyGate simplifies the process of setting up LiteLLM proxy servers by provid
 🎯 **Production Ready** - Generates complete project with config, environment templates, and documentation  
 📦 **PyPI Package** - Easy installation via pip from official PyPI repository
 
+## Prerequisites
+
+- **Python 3.11 or higher**
+- **LiteLLM CLI tool** (for running generated proxies)
+  ```bash
+  # Recommended: Install using uv
+  uv tool install 'litellm[proxy]'
+  
+  # Alternative: Install with pip
+  pip install 'litellm[proxy]'
+  ```
+
 ## Installation
 
 ### From PyPI
@@ -63,22 +75,22 @@ llm-anygate-cli create \
 If you want to use a custom model configuration, create a YAML file (`model-config.yaml`):
 
 ```yaml
-model_list:
-  - model_name: gpt-4o
-    litellm_params:
-      model: openai/gpt-4o
-      api_base: https://api.openai.com/v1
-      api_key: os.environ/OPENAI_API_KEY
+model_list:                                # Array of available models for the proxy
+  - model_name: gpt-4o                     # Alias name that clients use to request this model
+    litellm_params:                        # LiteLLM-specific parameters for this model
+      model: openai/gpt-4o                 # Provider prefix + actual model ID
+      api_base: https://api.openai.com/v1  # API endpoint URL (optional for OpenAI)
+      api_key: os.environ/OPENAI_API_KEY   # References environment variable
 
-  - model_name: claude-3-5-sonnet
+  - model_name: claude-3-5-sonnet          # Alias for Anthropic Claude model
     litellm_params:
-      model: anthropic/claude-3-5-sonnet-20241022
-      api_key: os.environ/ANTHROPIC_API_KEY
+      model: anthropic/claude-3-5-sonnet-20241022  # Anthropic provider + model version
+      api_key: os.environ/ANTHROPIC_API_KEY        # Environment variable reference
       
-  - model_name: gemini-pro
+  - model_name: gemini-pro                 # Alias for Google Gemini model
     litellm_params:
-      model: gemini/gemini-pro
-      api_key: os.environ/GEMINI_API_KEY
+      model: gemini/gemini-pro             # Google provider + model name
+      api_key: os.environ/GEMINI_API_KEY   # Environment variable reference
 ```
 
 ### Step 2: Configure Environment
@@ -94,8 +106,8 @@ cp env.example .env
 ### Step 3: Start the Proxy Server
 
 ```bash
-# Start using the CLI tool
-llm-anygate-cli start
+# Start specifying the project directory
+llm-anygate-cli start --project my-proxy
 
 # Or start from within the project directory
 cd my-proxy
@@ -129,8 +141,7 @@ my-proxy/
 ├── config.yaml         # Full LiteLLM configuration
 ├── env.example         # Template for API keys
 ├── anygate.yaml       # Project configuration for llm-anygate-cli
-├── README.md          # Project documentation
-└── .gitignore         # Git ignore rules
+└── README.md          # Project documentation
 ```
 
 ## CLI Usage
@@ -204,84 +215,11 @@ model_list:
 - Local models (Ollama, etc.)
 - Any provider supported by LiteLLM
 
-## Why LLM AnyGate?
-
-### The Problem
-Setting up LiteLLM proxy servers requires understanding complex configurations, database setups, and various deployment options. This complexity is a barrier for developers who just want a simple proxy for their AI tools.
-
-### The Solution
-LLM AnyGate provides a simple CLI that generates everything you need:
-- ✅ No database required (stateless operation)
-- ✅ Minimal configuration needed
-- ✅ Cross-platform start scripts
-- ✅ Environment variable management
-- ✅ Production-ready settings
-
-## Development
-
-### Project Structure
-
-```
-llm-anygate/
-├── src/llm_anygate/       # Main package source code
-│   ├── cli_tool.py        # CLI interface
-│   ├── config_converter.py # Config conversion logic
-│   ├── proxy_generator.py  # Project generation
-│   └── templates.py        # File templates
-├── tests/                  # Test suite
-├── docs/                   # Documentation
-└── context/                # AI collaboration workspace
-```
-
-### Running Tests
-
-```bash
-pixi run test           # Run tests
-pixi run test-cov       # Run tests with coverage
-```
-
-### Code Quality
-
-```bash
-pixi run lint           # Run linting
-pixi run format         # Format code
-pixi run typecheck      # Type checking
-pixi run quality        # Run all checks
-```
-
-## Roadmap
-
-- [x] Core CLI tool implementation
-- [x] LiteLLM configuration generation
-- [x] Cross-platform CLI commands (create & start)
-- [x] Environment variable management
-- [x] PyPI package publishing
-- [x] Default configuration support
-- [ ] Docker composition generator
-- [ ] Provider connectivity testing
-- [ ] Configuration validation
-- [ ] Web UI for configuration
-- [ ] Metrics and monitoring integration
-- [ ] Advanced routing and load balancing
-
-## Requirements
-
-- Python 3.11 or higher
-- LiteLLM CLI tool (for running generated proxies)
-  ```bash
-  # Recommended: Install using uv
-  uv tool install 'litellm[proxy]'
-  
-  # Alternative: Install with pip
-  pip install 'litellm[proxy]'
-  ```
-
 ## Security Notes
 
 - Generated projects include `env.example` as a template for API keys
 - Never commit `.env` files with actual API keys
 - Always use secure master keys in production
-- Generated `.gitignore` excludes sensitive files
 
 ## Contributing
 

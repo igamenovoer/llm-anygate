@@ -83,9 +83,6 @@ class ProxyGenerator:
                 master_key
             )
 
-            # Create .gitignore
-            gitignore_path = project_dir / ".gitignore"
-            self._create_file(gitignore_path, self._get_gitignore_content())
 
             print(f"\nProject created successfully at: {project_dir}")
             return True
@@ -209,18 +206,3 @@ project:
             # Ignore errors on Windows
             pass
 
-    def _get_gitignore_content(self) -> str:
-        """Get .gitignore content for the proxy project.
-
-        Returns:
-            .gitignore file content
-        """
-        return """.env
-.env.local
-*.log
-__pycache__/
-*.py[cod]
-*$py.class
-.DS_Store
-Thumbs.db
-"""
