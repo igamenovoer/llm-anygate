@@ -1,58 +1,85 @@
 """Check if litellm is installed and provide installation instructions."""
 
-import importlib.util
+import os
+import subprocess
 
 
 def check_litellm_installed() -> tuple[bool, str]:
-    """Check if litellm[proxy] is installed.
+    """Check if litellm command-line tool is available.
 
+    This checks for the litellm CLI command which is needed to start the proxy server.
+    
     Returns:
         A tuple of (is_installed, message)
     """
-    # First check if litellm module is available
-    litellm_spec = importlib.util.find_spec("litellm")
-
-    if litellm_spec is None:
-        return (
-            False,
-            "litellm is not installed.\n"
-            "To install, run: pip install 'litellm[proxy]'\n"
-            "Or with pixi: pixi add --pypi-dependencies 'litellm[proxy]'",
-        )
-
-    # Check if proxy extras are installed by trying to import proxy-specific modules
+    # Use the current environment to inherit PATH and other settings
+    env = dict(os.environ)
+    
+    # First, check if litellm command exists in PATH using a platform-specific approach
     try:
-        # Try to import proxy server module
-        proxy_spec = importlib.util.find_spec("litellm.proxy.proxy_server")
-        if proxy_spec is None:
+        # Use 'where' on Windows or 'which' on Unix-like systems
+        check_cmd = ["where", "litellm"] if os.name == "nt" else ["which", "litellm"]
+        
+        result = subprocess.run(
+            check_cmd,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
             return (
                 False,
-                "litellm is installed but proxy extras are missing.\n"
-                "To install proxy extras, run: pip install 'litellm[proxy]'\n"
-                "Or with pixi: pixi add --pypi-dependencies 'litellm[proxy]'",
+                "litellm command not found in PATH.\n"
+                "To install, run: uv tool install 'litellm[proxy]'"
             )
-
-        return (True, "litellm[proxy] is installed")
-
-    except Exception:
-        # If we can't determine proxy extras status, assume they're missing
+            
+    except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
         return (
             False,
-            "litellm is installed but proxy extras may be missing.\n"
-            "To ensure proxy extras are installed, run: pip install 'litellm[proxy]'\n"
-            "Or with pixi: pixi add --pypi-dependencies 'litellm[proxy]'",
+            "Unable to check for litellm command.\n"
+            "To install, run: uv tool install 'litellm[proxy]'"
         )
+    
+    # If we found the command in PATH, assume it's working
+    # We already confirmed it exists with where/which, so trust that it works
+    # The actual functionality will be tested when the user tries to start the server
+    return (True, "litellm command-line tool is available")
 
 
 def get_litellm_version() -> str:
-    """Get the installed litellm version.
+    """Get the installed litellm version from command-line tool.
 
     Returns:
         Version string or "unknown" if not installed
     """
     try:
-        import litellm
-
-        return getattr(litellm, "__version__", "unknown")
-    except ImportError:
+        # Use the current environment to inherit PATH and other settings
+        env = dict(os.environ)
+        
+        result = subprocess.run(
+            ["litellm", "--version"],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=15  # Increased timeout as litellm can be slow to start
+        )
+        
+        if result.returncode == 0:
+            # Extract version from output (usually like "litellm 1.2.3")
+            version_output = result.stdout.strip()
+            if version_output:
+                # Try to extract just the version number
+                parts = version_output.split()
+                if len(parts) >= 2:
+                    return parts[1]  # Second part should be version
+                return version_output
+            return "unknown"
+        else:
+            return "not available"
+            
+    except subprocess.TimeoutExpired:
+        return "timeout (slow startup)"
+    except (FileNotFoundError, Exception):
         return "not installed"

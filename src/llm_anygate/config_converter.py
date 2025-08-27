@@ -33,7 +33,7 @@ def convert_model_config_to_litellm(
             },
             # General settings
             "general_settings": {
-                "master_key": master_key,
+                "master_key": "os.environ/LITELLM_MASTER_KEY",  # Read from env
                 "disable_spend_logs": True,  # No DB writes
                 "disable_error_logs": True,  # No DB writes
                 "disable_adding_master_key_hash_to_db": True,  # No DB storage

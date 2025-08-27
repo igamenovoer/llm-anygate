@@ -37,7 +37,25 @@ suppose our project develops a cli tool named `llm-anygate-cli`, then we can run
 llm-anygate-cli create --project <project-dir> --model-config model-config.yaml --port 4567 --master-key "sk-dummy"
 ```
 
+**checking dependencies**
 note that, `llm-anygate-cli` will first check if `litellm[proxy]` is installed, if not, it will warn the user with installation instructions, but not install it automatically. Because generating a proxy project does not depend on `litellm` at runtime, so the generation continues.
+
+**default model config**
+if `--model-config` is not provided, we will treat the following as default model config,
+you can hardcode it in the cli tool:
+
+```yaml
+# litellm config.yaml
+
+# contents from model-config.yaml
+model_list:  
+  - model_name: (exposed model name)
+    litellm_params:
+      model: (api_format/model_name, e.g. openai/gpt-4o)
+      api_base: os.environ/OPENAI_BASE_URL
+      api_key: os.environ/OPENAI_API_KEY
+      temperature: 1.0
+```
 
 then, we will create a project directory `<project-dir>` with structure similar to `llm-proxy-proj`, with:
 - default port being `4567`
@@ -96,3 +114,4 @@ router_settings:
   enable_vertex_endpoint: true
   enable_gemini_endpoint: true
 ```
+

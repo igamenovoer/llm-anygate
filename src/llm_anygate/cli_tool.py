@@ -30,8 +30,7 @@ def cli(ctx: click.Context) -> None:
 )
 @click.option(
     "--model-config",
-    required=True,
-    help="Path to the model configuration YAML file",
+    help="Path to the model configuration YAML file (optional, generates default if not provided)",
     type=click.Path(exists=True)
 )
 @click.option(
@@ -47,7 +46,7 @@ def cli(ctx: click.Context) -> None:
     help="Master key for the proxy",
     show_default=True
 )
-def create(project: str, model_config: str, port: int, master_key: str) -> None:
+def create(project: str, model_config: str | None, port: int, master_key: str) -> None:
     """Create a new LiteLLM proxy project."""
     try:
         # Check if litellm is installed
@@ -61,9 +60,10 @@ def create(project: str, model_config: str, port: int, master_key: str) -> None:
         generator = ProxyGenerator()
 
         # Generate the project
+        model_config_path = Path(model_config) if model_config else None
         success = generator.create_project(
             project_dir=Path(project),
-            model_config_path=Path(model_config),
+            model_config_path=model_config_path,
             port=port,
             master_key=master_key,
         )
@@ -188,7 +188,12 @@ def main(args: list[str] | None = None) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
-        cli(args=args, standalone_mode=False)
+        if args is None:
+            # Normal CLI usage - let Click handle everything
+            cli()
+        else:
+            # Testing usage - use standalone_mode=False for programmatic control
+            cli(args=args, standalone_mode=False)
         return 0
     except SystemExit as e:
         if e.code is None:
